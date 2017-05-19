@@ -7,26 +7,29 @@ TESTS = $(call getobjs, $(call findfiles, tests))
 all: $(TESTS)
 	@echo ok
 
+clean:
+	@rm $(TESTS)
+
 %.o: %.c
-	@./$(LEXIS) $^
+	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
 
 %.o: %.cpp
-	@./$(LEXIS) $^
+	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
 
 %.o: %.m
-	@./$(LEXIS) $^
+	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
 
 %.o: %.mm
-	@./$(LEXIS) $^
+	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
 
 %.o: %.x
-	@./$(LEXIS) $^
+	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
 
 %.o: %.xm
-	@./$(LEXIS) $^
+	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
 
 %.o: %.xi
-	@./$(LEXIS) $^
+	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
 
 %.o: %.xmi
-	@./$(LEXIS) $^
+	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
