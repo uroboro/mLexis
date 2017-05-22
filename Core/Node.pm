@@ -8,12 +8,34 @@ sub new {
 	my $self = shift;
 	if ($self = $self->SUPER::new($self)) {
 		my $token = shift;
-
 		$self->type($self->typeFromToken($token));
 		$self->text($token->text);
+		$self->offset($token->offset);
+		$self->line($token->line);
+		$self->column($token->column);
 	}
 
 	return $self;
+}
+
+# Logistics
+
+sub offset {
+	my $self = shift;
+	if (@_) { $self->{OFFSET} = shift; }
+	return $self->{OFFSET};
+}
+
+sub line {
+	my $self = shift;
+	if (@_) { $self->{LINE} = shift; }
+	return $self->{LINE};
+}
+
+sub column {
+	my $self = shift;
+	if (@_) { $self->{COLUMN} = shift; }
+	return $self->{COLUMN};
 }
 
 # Introspection
@@ -36,10 +58,10 @@ sub nodes {
 	return $self->{SUBNODES} || [];
 }
 
-sub isArray {
+sub isContainer {
 	my $self = shift;
 
-	return ($self->type eq "array");
+	return ($self->type eq "container");
 }
 
 sub description {
@@ -50,12 +72,23 @@ sub description {
 	$type .= " " x (5-length($type));
 	my $tab = "\t" x $level;
 	my $content = "";
-	if ($self->isArray) {
+	if ($self->isContainer) {
 		$content = "nodes=".$self->text."\n".$tab.join("\n".$tab, map {$_->description($level)} @{$self->nodes})."\n".$self->pairForNode;
 	} else {
 		$content = "text=\"".$self->text."\"";
 	}
-	return "<".$self." type=\e[33m".$type."\e[m ".$content.">"
+
+	my $r = "<";
+	$r .= $self;
+	my $s = 4;
+	my $o = "0" x ($s-length($self->offset)).$self->offset;
+	my $l = "0" x ($s-length($self->line)).$self->line;
+	my $c = "0" x ($s-length($self->column)).$self->column;
+	$r .= " position(O:L:C)=\e[34m".$o.":".$l.":".$c."\e[m";
+	$r .= " type=\e[33m".$type."\e[m";
+	$r .= " ".$content;
+	$r .= ">";
+	return $r;
 }
 
 # Mutable
@@ -64,7 +97,7 @@ sub addSubnode {
 	my $self = shift;
 	my $token = shift;
 
-	if ($self->isArray) {
+	if ($self->isContainer) {
 		push(@{$self->{SUBNODES}}, $token);
 	}
 }
@@ -130,7 +163,7 @@ sub typeFromToken {
 		when(/del/) {
 			given ($token->text) {
 				when (/[()\[\]{}]/) {
-					$r = "array";
+					$r = "container";
 				}
 				when (/["]/) {
 					$r = "string";

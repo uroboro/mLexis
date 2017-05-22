@@ -13,6 +13,26 @@ sub new {
 	return $self;
 }
 
+# Logistics
+
+sub offset {
+	my $self = shift;
+	if (@_) { $self->{OFFSET} = shift; }
+	return $self->{OFFSET};
+}
+
+sub line {
+	my $self = shift;
+	if (@_) { $self->{LINE} = shift; }
+	return $self->{LINE};
+}
+
+sub column {
+	my $self = shift;
+	if (@_) { $self->{COLUMN} = shift; }
+	return $self->{COLUMN};
+}
+
 # Introspection
 
 sub text {
@@ -23,7 +43,18 @@ sub text {
 
 sub type {
 	my $self = shift;
-	return $self->typeForCharacter($self->text);
+	my $text = $self->text;
+	my $firstType = $self->typeForCharacter(substr($text, 0, 1));
+	given($firstType) {
+		when (/esc/) {
+			return $firstType if (length($text) == 1);
+			my $escapedType = $self->typeForCharacter(substr($text, -1, 1));
+			return $firstType."-".$escapedType;
+		}
+		default {
+			return $firstType;
+		}
+	}
 }
 
 sub isMergeable {
@@ -34,6 +65,9 @@ sub isMergeable {
 		when(/label|num|space/) {
 			$r = 1;
 		}
+		when(/esc/) {
+			$r = (length($self->text) == 1);
+		}
 	}
 	return $r;
 }
@@ -41,6 +75,10 @@ sub isMergeable {
 sub isMergeableWithToken {
 	my $self = shift;
 	my $other = shift;
+
+	if ($self->type eq "esc") {
+		return (length($self->text) == 1);
+	}
 	if ($self->isMergeable && $other->isMergeable) {
 		return $self->type eq $other->type || ($self->type eq "label" && $other->type eq "num");
 	}
@@ -52,7 +90,17 @@ sub description {
 
 	my $type = $self->type;
 	$type .= " " x (4-length($type));
-	return "<".$self." type=\e[33m".$type."\e[m text=\e[31m\"".$self->text."\"\e[m>"
+	my $r = "<";
+	$r .= $self;
+	my $s = 4;
+	my $o = "0" x ($s-length($self->offset)).$self->offset;
+	my $l = "0" x ($s-length($self->line)).$self->line;
+	my $c = "0" x ($s-length($self->column)).$self->column;
+	$r .= " position(O:L:C)=\e[34m".$o.":".$l.":".$c."\e[m";
+	$r .= " type=\e[33m".$type."\e[m";
+	$r .= " text=\e[31m\"".$self->text."\"\e[m";
+	$r .= ">";
+	return $r;
 }
 
 # Mutable
@@ -110,6 +158,9 @@ sub typeForCharacter {
 		}
 		when(/[#]/) {
 			$r = "macro";
+		}
+		when(/[\\]/) {
+			$r = "esc";
 		}
 		default {
 			$r = "else";
