@@ -1,10 +1,6 @@
-void arm64(int a){}
-void _archfind_platform2(int b, int c){}
+#include <stdio.h>
 
 int main () {
 	printf("hello, this is \"dog\"!\n");
-	if (0) {
-		x = 0;
-	}
 	return 0;
 }
