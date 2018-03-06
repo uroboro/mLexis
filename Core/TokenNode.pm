@@ -1,4 +1,4 @@
-package Core::Node;
+package Core::TokenNode;
 use parent qw(Core::Object);
 
 use 5.010;
@@ -14,7 +14,6 @@ sub new {
 		$self->line($token->line);
 		$self->column($token->column);
 	}
-
 	return $self;
 }
 
@@ -66,28 +65,51 @@ sub isContainer {
 
 sub description {
 	my $self = shift;
-	my $level = (shift || 0) + 1;
+	my $style = shift;
+	my $level = (shift || 0);
+	my $r = "";
 
-	my $type = $self->type;
-	$type .= " " x (5-length($type));
-	my $tab = "\t" x $level;
-	my $content = "";
-	if ($self->isContainer) {
-		$content = "nodes=".$self->text."\n".$tab.join("\n".$tab, map {$_->description($level)} @{$self->nodes})."\n".$self->pairForNode;
-	} else {
-		$content = "text=\"".$self->text."\"";
+	if ($self->type eq "root") {
+	    my @ast = @{$self->nodes};
+	    foreach (@ast) {
+	        say $_->description($style);
+	    }
+		return;
 	}
+	my $type = $self->type;
+	my $tab = "\t" x $level;
+	if ($style eq "xml") {
+		$type .= " " x (5-length($type));
+		my $content = "";
+		if ($self->isContainer) {
+			$content = "nodes=".$self->text."\n\t$tab".join("\n\t$tab", map {$_->description($style, $level + 1)} @{$self->nodes})."\n$tab".$self->pairForNode;
+		} else {
+			if ($self->text =~ /\n/) {
+				$content = "text=".($self->text =~ s/\n/\\n/r);
+			} elsif ($self->text =~ /\t/) {
+				$content = "text=".($self->text =~ s/\t/\\t/r);
+			} else {
+				$content = "text=\"".$self->text."\"";
+			}
+		}
 
-	my $r = "<";
-	$r .= $self;
-	my $s = 4;
-	my $o = "0" x ($s-length($self->offset)).$self->offset;
-	my $l = "0" x ($s-length($self->line)).$self->line;
-	my $c = "0" x ($s-length($self->column)).$self->column;
-	$r .= " position(O:L:C)=\e[34m".$o.":".$l.":".$c."\e[m";
-	$r .= " type=\e[33m".$type."\e[m";
-	$r .= " ".$content;
-	$r .= ">";
+		my $s = 4;
+		my $o = "0" x ($s-length($self->offset)).$self->offset;
+		my $l = "0" x ($s-length($self->line)).$self->line;
+		my $c = "0" x ($s-length($self->column)).$self->column;
+
+		$r = "<$self position(O:L:C)=\e[34m$o:$l:$c\e[m type=\e[33m$type\e[m $content>";
+	} elsif ($style eq "json") {
+		if ($self->isContainer) {
+			$r = $self->text."\n\t$tab".join(" | ", map {$_->description($style, $level + 1)} @{$self->nodes})."\n$tab".$self->pairForNode;
+		} else {
+			if ($type =~ /space|cr/) {
+				return;
+			} else {
+				$r = "\"".$self->text."\"";
+			}
+		}
+	}
 	return $r;
 }
 
