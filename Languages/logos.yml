@@ -1,0 +1,121 @@
+---
+name: Logos
+extensions: x xm xi xmi
+syntax:
+    group:
+        tokens:
+            - "%"
+            - "group"
+        type: container
+        hints:
+            - "%group Groupname"
+    hook:
+        tokens:
+            - "%"
+            - "hook"
+        type: class
+        hints:
+            - "%hook Classname"
+    new:
+        tokens:
+            - "%"
+            - "new"
+        type: function
+        arguments: optional
+        hints:
+            - "%new"
+            - "%new(signature)"
+    subclass:
+        tokens:
+            - "%"
+            - "subclass"
+        type: subclass
+        hints:
+            - "%subclass Classname: Superclass <Protocol list>"
+    property:
+        tokens:
+            - "%"
+            - "property"
+        type: property
+        hints:
+            - "%property (nonatomic|assign|retain|copy|weak|strong|getter|setter) Type name;"
+    end:
+        tokens:
+            - "%"
+            - "end"
+        type: closure
+        hints:
+            - "%end"
+    config:
+        tokens:
+            - "%"
+            - "config"
+        type: function
+        arguments: required
+        hints:
+            - "%config(Key=Value);"
+    hookf:
+        tokens:
+            - "%"
+            - "hookf"
+        type: function block
+        arguments: required
+        hints:
+            - "%hookf(rtype, symbolName, args...) { … }"
+    ctor:
+        tokens:
+            - "%"
+            - "ctor"
+        type: block
+        hints:
+            - "%ctor { … }"
+    dtor:
+        tokens:
+            - "%"
+            - "dtor"
+        type: block
+        hints:
+            - "%dtor { … }"
+    init:
+        tokens:
+            - "%"
+            - "init"
+        type: function
+        arguments: optional
+        hints:
+            - "%init;"
+            - "%init(Group[, [+|-]<class>=<expr>, …]);"
+    class:
+        tokens:
+            - "%"
+            - "class"
+        type: function
+        arguments: required
+        hints:
+            - "%class Class;"
+    c:
+        tokens:
+            - "%"
+            - "c"
+        type: function
+        arguments: required
+        hints:
+            - "%c([+|-]Class);"
+    orig:
+        tokens:
+            - "%"
+            - "orig"
+        type: function
+        arguments: optional
+        hints:
+            - "%orig;"
+            - "%orig(arg1, …);"
+    log:
+        tokens:
+            - "%"
+            - "log"
+        type: function
+        arguments: optional
+        hints:
+            - "%log;"
+            - "%log([(<type>)<expr>, …]);"
