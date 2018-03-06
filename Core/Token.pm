@@ -90,16 +90,13 @@ sub description {
 
 	my $type = $self->type;
 	$type .= " " x (4-length($type));
-	my $r = "<";
-	$r .= $self;
 	my $s = 4;
 	my $o = "0" x ($s-length($self->offset)).$self->offset;
 	my $l = "0" x ($s-length($self->line)).$self->line;
 	my $c = "0" x ($s-length($self->column)).$self->column;
-	$r .= " position(O:L:C)=\e[34m".$o.":".$l.":".$c."\e[m";
-	$r .= " type=\e[33m".$type."\e[m";
-	$r .= " text=\e[31m\"".$self->text."\"\e[m";
-	$r .= ">";
+
+	my $r = "<$self position(O:L:C)=\e[34m$o:$l:$c\e[m type=\e[33m$type\e[m text=\e[31m\"".$self->text."\"\e[m>";
+
 	return $r;
 }
 

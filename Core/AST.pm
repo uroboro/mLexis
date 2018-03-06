@@ -6,12 +6,8 @@ use strict;
 use warnings;
 use FindBin;
 
-#use Core::Token;
-#use Core::Node;
-
 sub tokensFromFile {
     my $filename = shift;
-
     return mergeTokens(allTokensFromFile($filename));
 }
 
@@ -25,9 +21,7 @@ sub allTokensFromFile {
 
     my @tokens = ();
     my ($c, $n);
-    my $O = 0;
-    my $L = 0;
-    my $C = 0;
+    my ($O, $L, $C) = (0, 0, 0);
     while (($n = read(FILE, $c, 1)) != 0) {
         my $token = Core::Token->new($c);
         $token->offset($O);
@@ -48,10 +42,10 @@ sub allTokensFromFile {
 }
 
 sub mergeTokens {
-    my @Tokens = @_;
+    my @allTokens = @_;
 
     my @tokens = ();
-    foreach (@Tokens) {
+    foreach (@allTokens) {
         my $t = $tokens[$#tokens];
         if ($t && $t->isMergeableWithToken($_)) {
             $t->mergeWithToken($_);
@@ -62,9 +56,9 @@ sub mergeTokens {
     return @tokens;
 }
 
-sub astFromTokens {
+sub _astFromTokens {
     my $deep = shift;
-    my @Tokens = @_;
+    my @tokens = @_;
 
     my $level = 0;
     my @buffer = ();
@@ -72,8 +66,8 @@ sub astFromTokens {
     my $current;
     my $close = "";
     my @ast = ();
-    foreach (@Tokens) {
-        my $node = Core::Node->new($_);
+    foreach (@tokens) {
+        my $node = Core::TokenNode->new($_);
         if ($node->isContainer || $level != 0) { # Node is a container or a container has been started
             if (!$current) {
                 $level += 1;
@@ -87,7 +81,7 @@ sub astFromTokens {
                 } elsif ($node->text eq $close) { # Node closes current container
                     $level -= 1;
                     if ($level == 0) { # Node actually closes container so push container
-                        my @subnodes = astFromTokens($deep + 1, @buffer);
+                        my @subnodes = _astFromTokens($deep + 1, @buffer);
                         $current->nodes(@subnodes);
                         @buffer = ();
                         $current = undef;
@@ -106,13 +100,36 @@ sub astFromTokens {
     return @ast;
 }
 
-sub fileFromAST {
+sub astFromTokens {
+    my @tokens = @_;
+	my @ast = _astFromTokens(0, @tokens);
+
+	my $rootToken = Core::Token->new("root");
+	$rootToken->offset(0);
+	$rootToken->line(0);
+	$rootToken->column(0);
+
+	my $rootNode = Core::TokenNode->new($rootToken);
+	$rootNode->type("root");
+	$rootNode->nodes(@ast);
+
+	return $rootNode;
+}
+
+sub ASTFromFile {
+	my $file = shift;
+	my @tokens = tokensFromFile($file);
+	my $ast = astFromTokens(@tokens);
+	return $ast;
+}
+
+sub _fileFromAST {
     my @ast = @_;
     my $r = "";
     foreach (@ast) {
         if ($_->isContainer) {
             $r .= $_->text;
-            $r .= fileFromAST(@{$_->nodes});
+            $r .= _fileFromAST(@{$_->nodes});
             $r .= $_->pairForNode;
         } else {
             $r .= $_->text;
@@ -121,15 +138,20 @@ sub fileFromAST {
     return $r;
 }
 
-# Introspection
-
-sub recursiveDescription {
-    my @ast = @_;
-    say "---";
+sub fileFromAST {
+    my $rootNode = shift;
+    my @ast = @{$rootNode->nodes};
+    my $r = "";
     foreach (@ast) {
-        say $_->description;
+        if ($_->isContainer) {
+            $r .= $_->text;
+            $r .= _fileFromAST(@{$_->nodes});
+            $r .= $_->pairForNode;
+        } else {
+            $r .= $_->text;
+        }
     }
-    say "===";
+    return $r;
 }
 
 1;

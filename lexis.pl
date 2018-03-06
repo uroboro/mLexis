@@ -18,9 +18,11 @@ use Core::FileUtils;
 
 my $data   = "file.dat";
 my $length = 24;
+my $outputFormat = "xml";
 my $verbose;
 GetOptions( "length=i" => \$length,    # numeric
 			"file=s"   => \$data,	   # string
+			"outputFormat=s" => \$outputFormat,	   # string
 			"verbose"  => \$verbose)   # flag
 or die("Error in command line arguments\n");
 
@@ -28,21 +30,23 @@ or die("Error in command line arguments\n");
 # my @configs = Core::FileUtils::listDirectory($languagesDir, "f");
 # say "---";
 # foreach (@configs) {
-#	  say $languagesDir.$_;
-#	  my $yml = LoadFile($languagesDir.$_);
-#	  print Dumper($yml);
+# 	say $languagesDir.$_;
+# 	my $yml = LoadFile($languagesDir.$_);
+# 	print Dumper($yml);
 # }
+my $yml = LoadFile("./Languages/logos.yml");
+# print Dumper($yml);
 # say "===";
+# exit 0;
 
 Core::FileUtils::loadModulesAtPath("./Core/");
 foreach (@ARGV) {
-	my @tokens = Core::AST::tokensFromFile($_);
-	#Core::AST::recursiveDescription(@tokens);
+	my $ast = Core::AST::ASTFromFile($_);
+    say "---";
+	$ast->description($outputFormat);
+    say "===";
 
-	my @ast = Core::AST::astFromTokens(0, @tokens);
-	#Core::AST::recursiveDescription(@ast);
-
-	#say "---";
-	say Core::AST::fileFromAST(@ast);
-	#say "===";
+	say "---";
+	say Core::AST::fileFromAST($ast);
+	say "===";
 }

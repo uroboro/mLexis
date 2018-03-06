@@ -10,4 +10,11 @@ sub new {
 	return $self;
 }
 
+sub description {
+	my $self = shift;
+
+	my $r = "<$self>";
+	return $r;
+}
+
 1;
