@@ -1,5 +1,5 @@
-findfiles = $(foreach ext, c cpp m mm x xm xi xmi, $(wildcard $(1)/*.$(ext)))
-getobjs = $(foreach ext, c cpp m mm x xm xi xmi, $(filter %.o,$(patsubst %.$(ext),%.o,$(1))))
+findfiles = $(foreach ext, x xm xi xmi, $(wildcard $(1)/*.$(ext)))
+getobjs = $(foreach ext, x xm xi xmi, $(filter %.o,$(patsubst %.$(ext),%.o,$(1))))
 
 LEXIS = lexis.pl
 TESTS = $(call getobjs, $(call findfiles, tests))
@@ -8,28 +8,32 @@ all: $(TESTS)
 	@echo ok
 
 clean:
-	@rm $(TESTS)
+	@rm -f $(TESTS)
+
+# .SECONDEXPANSION:
+# %.o: $(call findfiles, tests)
+# 	@./$(LEXIS) $^ > $@ && echo "\033[33m$@\033[m: \033[32msuccess\033[m" || echo "\033[33m$@\033[m: \033[31mfailure\033[m"
 
 %.o: %.c
-	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
+	@./$(LEXIS) $^ > $@ && echo "\033[33m$@\033[m: \033[32msuccess\033[m" || echo "\033[33m$@\033[m: \033[31mfailure\033[m"
 
 %.o: %.cpp
-	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
+	@./$(LEXIS) $^ > $@ && echo "\033[33m$@\033[m: \033[32msuccess\033[m" || echo "\033[33m$@\033[m: \033[31mfailure\033[m"
 
 %.o: %.m
-	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
+	@./$(LEXIS) $^ > $@ && echo "\033[33m$@\033[m: \033[32msuccess\033[m" || echo "\033[33m$@\033[m: \033[31mfailure\033[m"
 
 %.o: %.mm
-	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
+	@./$(LEXIS) $^ > $@ && echo "\033[33m$@\033[m: \033[32msuccess\033[m" || echo "\033[33m$@\033[m: \033[31mfailure\033[m"
 
 %.o: %.x
-	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
+	@./$(LEXIS) $^ > $@ && echo "\033[33m$@\033[m: \033[32msuccess\033[m" || echo "\033[33m$@\033[m: \033[31mfailure\033[m"
 
 %.o: %.xm
-	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
+	@./$(LEXIS) $^ > $@ && echo "\033[33m$@\033[m: \033[32msuccess\033[m" || echo "\033[33m$@\033[m: \033[31mfailure\033[m"
 
 %.o: %.xi
-	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
+	@./$(LEXIS) $^ > $@ && echo "\033[33m$@\033[m: \033[32msuccess\033[m" || echo "\033[33m$@\033[m: \033[31mfailure\033[m"
 
 %.o: %.xmi
-	@./$(LEXIS) $^ > $@ && echo -e "\e[33m$@\e[m: \e[32msuccess\e[m" || echo -e "\e[33m$@\e[m: \e[31mfailure\e[m"
+	@./$(LEXIS) $^ > $@ && echo "\033[33m$@\033[m: \033[32msuccess\033[m" || echo "\033[33m$@\033[m: \033[31mfailure\033[m"

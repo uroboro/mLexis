@@ -1,4 +1,4 @@
-package Core::TokenNode;
+package Core::Node;
 use parent qw(Core::Object);
 
 use 5.010;
@@ -7,12 +7,10 @@ no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 sub new {
 	my $self = shift;
 	if ($self = $self->SUPER::new($self)) {
-		my $token = shift;
-		$self->type($self->typeFromToken($token));
-		$self->text($token->text);
-		$self->offset($token->offset);
-		$self->line($token->line);
-		$self->column($token->column);
+		my $type = shift;
+		$self->type($type);
+		my $text = shift;
+		$self->text($text) if defined($text);
 	}
 	return $self;
 }
@@ -37,6 +35,15 @@ sub column {
 	return $self->{COLUMN};
 }
 
+sub copyMetadataFromToken {
+	my $self = shift;
+	my $token = shift;
+
+	$self->offset($token->offset);
+	$self->line($token->line);
+	$self->column($token->column);
+}
+
 # Introspection
 
 sub type {
@@ -55,12 +62,6 @@ sub nodes {
 	my $self = shift;
 	if (@_) { @{$self->{SUBNODES}} = @_; }
 	return $self->{SUBNODES} || [];
-}
-
-sub isContainer {
-	my $self = shift;
-
-	return ($self->type eq "container");
 }
 
 sub description {
@@ -115,114 +116,95 @@ sub description {
 
 # Mutable
 
-sub addSubnode {
-	my $self = shift;
-	my $token = shift;
-
-	if ($self->isContainer) {
-		push(@{$self->{SUBNODES}}, $token);
-	}
-}
+# sub addSubnode {
+# 	my $self = shift;
+# 	my $token = shift;
+#
+# 	if ($self->isContainer) {
+# 		push(@{$self->{SUBNODES}}, $token);
+# 	}
+# }
 
 # Utility
 
-sub typeFromToken {
-	my $self = shift;
-	my $token = shift;
-
-	my $r = "";
-	given($token->type) {
-		when(/label/) {
-			$r = "label";
-		}
-		when(/num/) {
-			$r = "num";
-		}
-		when(/op/) {
-			given ($token->text) {
-				when (/[-]/) {
-					$r = "minus";
-				}
-				when (/[+]/) {
-					$r = "plus";
-				}
-				when (/[\*]/) {
-					$r = "prod";
-				}
-				when (/[%]/) {
-					$r = "mod";
-				}
-				when (/[\^]/) {
-					$r = "pow";
-				}
-				when (/[&]/) {
-					$r = "and";
-				}
-				when (/[|]/) {
-					$r = "or";
-				}
-				when (/[!]/) {
-					$r = "excl";
-				}
-				when (/[?]/) {
-					$r = "elvis";
-				}
-			}
-		}
-		when(/comp/) {
-			given ($token->text) {
-				when (/[=]/) {
-					$r = "idem";
-				}
-				when (/[<]/) {
-					$r = "less";
-				}
-				when (/[>]/) {
-					$r = "more";
-				}
-			}
-		}
-		when(/del/) {
-			given ($token->text) {
-				when (/[()\[\]{}]/) {
-					$r = "container";
-				}
-				when (/["]/) {
-					$r = "string";
-				}
-				when (/[']/) {
-					$r = "char";
-				}
-				default {
-					$r = "del";
-				}
-			}
-		}
-		default {
-			$r = $_;
-		}
-	}
-
-	return $r;
-}
-
-sub pairForNode {
-	my $self = shift;
-
-	given($self->text) {
-		when(/\(/) {
-			return ")";
-		}
-		when(/\[/) {
-			return "]";
-		}
-		when(/{/) {
-			return "}";
-		}
-		default {
-			return "";
-		}
-	}
-}
+# sub typeFromToken {
+# 	my $self = shift;
+# 	my $token = shift;
+#
+# 	my $r = "";
+# 	given($token->type) {
+# 		when(/label/) {
+# 			$r = "label";
+# 		}
+# 		when(/num/) {
+# 			$r = "num";
+# 		}
+# 		when(/op/) {
+# 			given ($token->text) {
+# 				when (/[-]/) {
+# 					$r = "minus";
+# 				}
+# 				when (/[+]/) {
+# 					$r = "plus";
+# 				}
+# 				when (/[\*]/) {
+# 					$r = "prod";
+# 				}
+# 				when (/[%]/) {
+# 					$r = "mod";
+# 				}
+# 				when (/[\^]/) {
+# 					$r = "pow";
+# 				}
+# 				when (/[&]/) {
+# 					$r = "and";
+# 				}
+# 				when (/[|]/) {
+# 					$r = "or";
+# 				}
+# 				when (/[!]/) {
+# 					$r = "excl";
+# 				}
+# 				when (/[?]/) {
+# 					$r = "elvis";
+# 				}
+# 			}
+# 		}
+# 		when(/comp/) {
+# 			given ($token->text) {
+# 				when (/[=]/) {
+# 					$r = "idem";
+# 				}
+# 				when (/[<]/) {
+# 					$r = "less";
+# 				}
+# 				when (/[>]/) {
+# 					$r = "more";
+# 				}
+# 			}
+# 		}
+# 		when(/del/) {
+# 			given ($token->text) {
+# 				when (/[()\[\]{}]/) {
+# 					$r = "container";
+# 				}
+# 				when (/["]/) {
+# 					$r = "string";
+# 				}
+# 				when (/[']/) {
+# 					$r = "char";
+# 				}
+# 				default {
+# 					$r = "del";
+# 				}
+# 			}
+# 		}
+# 		default {
+# 			$r = $_;
+# 		}
+# 	}
+#
+# 	return $r;
+# }
 
 1;

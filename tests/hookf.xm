@@ -1,5 +1,9 @@
-%hookf(FILE *, "fopen", const char *path, const char *mode) {
-	NSLog(@"Hey, we're hooking fopen to deny relative paths!");
+/*
+ * Logos function hooking example.
+ */
+
+%hookf(FILE *, fopen, const char *path, const char *mode) {
+	NSLog(@"Hey, we're hooking \"fopen\" to deny relative paths!");
 	if (path[0] != '/') {
 		return NULL;
 	}

@@ -2,7 +2,64 @@ package Core::Token;
 use parent qw(Core::Object);
 
 use 5.010;
+use strict;
+use warnings;
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
+use FindBin;
+
+# Class methods
+
+sub tokensFromFile {
+    my $filename = shift;
+    return mergeTokens(_allTokensFromFile($filename));
+}
+
+sub _allTokensFromFile {
+    my $filename = shift;
+
+    die "Syntax: $FindBin::Script filename\n" if !$filename;
+
+    my $FILE;
+    open(FILE, $filename) or die $!." [$filename]";
+
+    my @tokens = ();
+    my ($c, $n);
+    my ($O, $L, $C) = (0, 0, 0);
+    while (($n = read(FILE, $c, 1)) != 0) {
+        my $token = Core::Token->new($c);
+        $token->offset($O);
+        $token->line($L);
+        $token->column($C);
+        push(@tokens, $token);
+        if ($c eq "\n") {
+            $L++;
+            $C = 0;
+        } else {
+            $C++;
+        }
+        $O++;
+    }
+    close(FILE);
+
+    return @tokens;
+}
+
+sub mergeTokens {
+    my @allTokens = @_;
+
+    my @tokens = ();
+    foreach (@allTokens) {
+        my $t = $tokens[$#tokens];
+        if ($t && $t->isMergeableWithToken($_)) {
+            $t->mergeWithToken($_);
+        } else {
+            push(@tokens, $_);
+        }
+    }
+    return @tokens;
+}
+
+# Instance methods
 
 sub new {
 	my $self = shift;

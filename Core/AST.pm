@@ -4,57 +4,6 @@ package Core::AST;
 use 5.010;
 use strict;
 use warnings;
-use FindBin;
-
-sub tokensFromFile {
-    my $filename = shift;
-    return mergeTokens(allTokensFromFile($filename));
-}
-
-sub allTokensFromFile {
-    my $filename = shift;
-
-    die "Syntax: $FindBin::Script filename\n" if !$filename;
-
-    my $FILE;
-    open(FILE, $filename) or die $!." [$filename]";
-
-    my @tokens = ();
-    my ($c, $n);
-    my ($O, $L, $C) = (0, 0, 0);
-    while (($n = read(FILE, $c, 1)) != 0) {
-        my $token = Core::Token->new($c);
-        $token->offset($O);
-        $token->line($L);
-        $token->column($C);
-        push(@tokens, $token);
-        if ($c eq "\n") {
-            $L++;
-            $C = 0;
-        } else {
-            $C++;
-        }
-        $O++;
-    }
-    close(FILE);
-
-    return @tokens;
-}
-
-sub mergeTokens {
-    my @allTokens = @_;
-
-    my @tokens = ();
-    foreach (@allTokens) {
-        my $t = $tokens[$#tokens];
-        if ($t && $t->isMergeableWithToken($_)) {
-            $t->mergeWithToken($_);
-        } else {
-            push(@tokens, $_);
-        }
-    }
-    return @tokens;
-}
 
 sub _astFromTokens {
     my $deep = shift;
@@ -67,7 +16,8 @@ sub _astFromTokens {
     my $close = "";
     my @ast = ();
     foreach (@tokens) {
-        my $node = Core::TokenNode->new($_);
+        my $node = Core::Node->new($_);
+		# check for single line and multi line comment
         if ($node->isContainer || $level != 0) { # Node is a container or a container has been started
             if (!$current) {
                 $level += 1;
@@ -109,7 +59,7 @@ sub astFromTokens {
 	$rootToken->line(0);
 	$rootToken->column(0);
 
-	my $rootNode = Core::TokenNode->new($rootToken);
+	my $rootNode = Core::Node->new($rootToken);
 	$rootNode->type("root");
 	$rootNode->nodes(@ast);
 
@@ -118,7 +68,7 @@ sub astFromTokens {
 
 sub ASTFromFile {
 	my $file = shift;
-	my @tokens = tokensFromFile($file);
+	my @tokens = Core::Token::tokensFromFile($file);
 	my $ast = astFromTokens(@tokens);
 	return $ast;
 }
